@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adult-income-prediction"
+version = "1.0.0"
+description = "Adult Income Prediction with FastAPI, Docker, CI/CD - ML Project"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Alireza", email = "alirezahs81@example.com"}
+]
+keywords = ["machine-learning", "income-prediction", "fastapi", "mlops", "docker"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pandas==2.2.2",
+    "numpy==1.26.4",
+    "scikit-learn==1.5.0",
+    "joblib==1.4.2",
+    "scipy==1.13.1",
+    "fastapi==0.111.0",
+    "uvicorn[standard]==0.30.1",
+    "pydantic==2.7.4",
+    "python-multipart==0.0.9",
+    "requests==2.32.3",
+    "tqdm==4.66.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.2.2",
+    "pytest-cov==5.0.0",
+    "ruff==0.5.7",
+    "mypy==1.11.2",
+    "pre-commit==3.8.0",
+    "jupyterlab==4.3.1",
+    "ipykernel==6.29.5",
+]
+advanced-ml = [
+    "xgboost==2.0.3",
+    "lightgbm==4.3.0",
+    "optuna==4.0.0",
+    "shap==0.44.1",
+    "matplotlib==3.8.4",
+    "seaborn==0.13.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/alirezahs81/adult-income-prediction"
+Repository = "https://github.com/alirezahs81/adult-income-prediction"
+Issues = "https://github.com/alirezahs81/adult-income-prediction/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "W", "UP", "B", "C4", "ANN", "T20"]
+ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN204", "ANN401", "T201", "T203"]
+exclude = [".git", "__pycache__", ".pytest_cache", "data", "models", "notebooks", ".venv", "venv"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers --strict-config"
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+    "api: marks tests as API tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/api.py", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
