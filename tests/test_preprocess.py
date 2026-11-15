@@ -51,3 +51,20 @@ def test_preprocessor_ignores_unseen_categories() -> None:
     preprocessor.fit(training)
     transformed = preprocessor.transform(validation)
     assert transformed.shape[0] == 1
+
+
+def test_loader_preserves_official_uci_column_order(tmp_path: Path) -> None:
+    row = [
+        "39", "Private", "77516", "Bachelors", "13", "Never-married",
+        "Adm-clerical", "Not-in-family", "White", "Male", "2174", "0",
+        "40", "United-States", "<=50K",
+    ]
+    path = tmp_path / "adult.data"
+    path.write_text(", ".join(row) + "\\n", encoding="utf-8")
+
+    frame = load_adult_csv(path)
+
+    assert frame.loc[0, "age"] == 39
+    assert frame.loc[0, "workclass"] == "Private"
+    assert frame.loc[0, "fnlwgt"] == 77516
+    assert frame.loc[0, TARGET] == 0
