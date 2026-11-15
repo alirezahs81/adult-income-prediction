@@ -22,17 +22,43 @@ EXAMPLE = {
 }
 
 
-def test_health_degraded_without_model(monkeypatch) -> None:
+class FakeModel:
+    def predict_proba(self, _frame):
+        return [[0.2, 0.8]]
+
+
+def test_health_is_liveness_even_without_model(monkeypatch) -> None:
     monkeypatch.setattr(api, "model", None)
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "degraded"
+    assert response.json() == {"status": "alive"}
+
+
+def test_ready_returns_503_without_model(monkeypatch) -> None:
+    monkeypatch.setattr(api, "model", None)
+    response = client.get("/ready")
+    assert response.status_code == 503
+
+
+def test_ready_succeeds_with_model(monkeypatch) -> None:
+    monkeypatch.setattr(api, "model", FakeModel())
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["model_loaded"] is True
 
 
 def test_prediction_returns_503_without_model(monkeypatch) -> None:
     monkeypatch.setattr(api, "model", None)
     response = client.post("/predict", json=EXAMPLE)
     assert response.status_code == 503
+
+
+def test_prediction_returns_class_and_probability(monkeypatch) -> None:
+    monkeypatch.setattr(api, "model", FakeModel())
+    response = client.post("/predict", json=EXAMPLE)
+    assert response.status_code == 200
+    assert response.json() == {"prediction": ">50K", "probability": 0.8}
+    assert "confidence" not in response.json()
 
 
 def test_invalid_age_is_rejected() -> None:
