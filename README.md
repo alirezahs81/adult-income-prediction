@@ -13,25 +13,32 @@ A reproducible machine-learning project that estimates whether an adult's annual
 - Unit tests and GitHub Actions CI.
 - Docker image that does not require datasets or model artifacts to be committed.
 
-No benchmark score is hard-coded as a project result. Run training to generate models/metrics.json; reported metrics depend on the dataset and installed library versions.
+No benchmark score is hard-coded as a project result. Run training to generate `models/metrics.json`; reported metrics depend on the dataset and installed library versions.
 
 ## Project structure
 
 ~~~text
 adult-income-prediction/
-├── .github/workflows/ci.yml
-├── scripts/download_data.py
+├── .github/workflows/
+│   ├── ci.yml
+│   └── model-evaluation.yml
+├── scripts/
+│   └── download_data.py
 ├── src/
 │   ├── api.py
 │   ├── preprocess.py
 │   └── train.py
 ├── tests/
 │   ├── test_api.py
-│   └── test_preprocess.py
+│   ├── test_preprocess.py
+│   └── test_train.py
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+├── pyproject.toml
 ├── requirements.txt
 ├── requirements-dev.txt
-├── Dockerfile
-└── pyproject.toml
+└── README.md
 ~~~
 
 ## Setup (Python 3.11+)
@@ -49,11 +56,11 @@ pytest
 ruff check src scripts tests
 ~~~
 
-The downloader saves the canonical UCI files to data/raw/adult.data and data/raw/adult.test. Dataset files are intentionally not committed.
+The downloader saves the canonical UCI files to `data/raw/adult.data` and `data/raw/adult.test`. Dataset files are intentionally not committed.
 
 Training writes:
-- models/adult_income_pipeline.joblib
-- models/metrics.json
+- `models/adult_income_pipeline.joblib`
+- `models/metrics.json`
 
 The official test set is only used for final evaluation. It is not used to fit preprocessing, train the classifier, or select model settings.
 
@@ -65,13 +72,13 @@ Start the service after training:
 uvicorn src.api:app --host 127.0.0.1 --port 8000
 ~~~
 
-- GET /health — liveness check (API process responds).
-- GET /ready — readiness check (HTTP 200 only when the model is loaded; otherwise HTTP 503).
-- GET /model-info
-- GET /example
-- POST /predict
-- POST /predict/batch (1–100 instances)
-- GET /docs (interactive OpenAPI documentation)
+- GET `/health` — liveness check (API process responds).
+- GET `/ready` — readiness check (HTTP 200 only when the model is loaded; otherwise HTTP 503).
+- GET `/model-info`
+- GET `/example`
+- POST `/predict`
+- POST `/predict/batch` (1–100 instances)
+- GET `/docs` (interactive OpenAPI documentation)
 
 The API returns a predicted class and model probability. Probability is not a guarantee or a calibrated personal assessment. The response does not label probability as model confidence.
 
@@ -83,7 +90,11 @@ Train the model locally first, then:
 docker compose up --build
 ~~~
 
-The model directory is mounted read-only at runtime. The container healthcheck uses /ready, so the container is not marked healthy until a model is loaded. If the artifact is absent, the API process remains live but readiness and prediction endpoints return HTTP 503; the image build itself remains reproducible and does not rely on untracked data/model folders.
+The model directory is mounted read-only at runtime. The container healthcheck uses `/ready`, so the container is not marked healthy until a model is loaded. If the artifact is absent, the API process remains live but readiness and prediction endpoints return HTTP 503.
+
+**Network exposure:** Compose publishes the API on `127.0.0.1:8000` by default, so it is reachable only from the Docker host. Do not expose this unauthenticated API directly to a public network. A production deployment needs an authenticated gateway/reverse proxy, TLS, request limits, and appropriate monitoring.
+
+**Model artifact security:** `joblib.load` uses Python pickle-based deserialization and can execute code. Only load model artifacts that you created or obtained from a trusted, integrity-verified source. Do not accept uploaded or third-party model files as `MODEL_PATH`.
 
 ## Data
 
@@ -97,7 +108,7 @@ The data reflects historical census patterns and includes protected or sensitive
 
 ## CI
 
-GitHub Actions runs Ruff and pytest on pushes to the repair branch and pull requests targeting main. CI tests do not download the dataset or require a trained model.
+GitHub Actions runs Ruff and pytest on pushes to the repair branch and pull requests targeting main. CI tests do not download the dataset or require a trained model. A separate workflow downloads the official UCI data, trains the baseline, and evaluates the untouched official test split.
 
 ## License
 
