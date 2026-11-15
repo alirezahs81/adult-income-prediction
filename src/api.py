@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -11,8 +12,20 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 MODEL_PATH = Path(os.getenv("MODEL_PATH", "models/adult_income_pipeline.joblib"))
-app = FastAPI(title="Adult Income Prediction API", version="2.0.0")
 model: Any | None = None
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    load_model()
+    yield
+
+
+app = FastAPI(
+    title="Adult Income Prediction API",
+    version="2.0.0",
+    lifespan=lifespan,
+)
 
 
 class AdultFeatures(BaseModel):
@@ -41,11 +54,6 @@ def load_model() -> bool:
         return True
     model = None
     return False
-
-
-@app.on_event("startup")
-def startup() -> None:
-    load_model()
 
 
 def _predict_one(payload: AdultFeatures) -> dict[str, Any]:
