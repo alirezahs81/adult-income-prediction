@@ -1,0 +1,72 @@
+name: Real Dataset Model Evaluation
+
+on:
+  push:
+    branches:
+      - "fix/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  train-and-evaluate:
+    name: Train on UCI Adult and evaluate held-out test set
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download official UCI dataset
+        run: python scripts/download_data.py
+
+      - name: Verify dataset files
+        run: |
+          test -s data/raw/adult.data
+          test -s data/raw/adult.test
+          wc -l data/raw/adult.data data/raw/adult.test
+
+      - name: Train and evaluate without test leakage
+        run: python -m src.train
+
+      - name: Validate metrics report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("models/metrics.json").read_text(encoding="utf-8"))
+          assert report["training_rows"] > 0
+          assert report["validation_rows"] > 0
+          assert report["official_test_rows"] > 0
+          for split in ("validation_metrics", "official_test_metrics"):
+              metrics = report[split]
+              for key in ("accuracy", "precision", "recall", "f1", "roc_auc"):
+                  assert 0.0 <= metrics[key] <= 1.0, (split, key, metrics[key])
+          assert Path("models/adult_income_pipeline.joblib").is_file()
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload model and evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: adult-income-real-data-evaluation
+          path: |
+            models/metrics.json
+            models/adult_income_pipeline.joblib
+          retention-days: 14
