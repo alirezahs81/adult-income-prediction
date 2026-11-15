@@ -3,7 +3,7 @@ services:
     build: .
     container_name: adult-income-api
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       MODEL_PATH: /app/models/adult_income_pipeline.joblib
       PYTHONPATH: /app
