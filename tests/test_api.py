@@ -78,4 +78,3 @@ def test_example_endpoint() -> None:
 def test_batch_limit_is_validated() -> None:
     response = client.post("/predict/batch", json={"instances": []})
     assert response.status_code == 422
-}
