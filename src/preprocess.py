@@ -1,1 +1,74 @@
-"""Data loading and leakage-safe preprocessing for the UCI Adult dataset."""\nfrom __future__ import annotations\n\nfrom pathlib import Path\nfrom typing import Final\n\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import OneHotEncoder, StandardScaler\n\nTARGET: Final[str] = "income"\nNUMERIC_FEATURES: Final[list[str]] = [\n    "age", "fnlwgt", "education-num", "capital-gain", "capital-loss", "hours-per-week"\n]\nCATEGORICAL_FEATURES: Final[list[str]] = [\n    "workclass", "education", "marital-status", "occupation", "relationship", "race", "sex", "native-country"\n]\nFEATURES: Final[list[str]] = NUMERIC_FEATURES + CATEGORICAL_FEATURES\nCOLUMNS: Final[list[str]] = FEATURES + [TARGET]\n\n\ndef load_adult_csv(path: str | Path, *, is_test: bool = False) -> pd.DataFrame:\n    """Load an official UCI Adult data file and normalize its target labels."""\n    frame = pd.read_csv(\n        path,\n        header=None,\n        names=COLUMNS,\n        na_values=["?", " ?"],\n        skipinitialspace=True,\n        comment="|",\n        skiprows=1 if is_test else 0,\n    )\n    frame = frame.dropna(subset=[TARGET]).copy()\n    frame[TARGET] = frame[TARGET].astype(str).str.strip().str.removesuffix(".")\n    frame[TARGET] = frame[TARGET].replace({"<=50K": 0, ">50K": 1}).astype("int8")\n    return frame\n\n\ndef build_preprocessor() -> ColumnTransformer:\n    """Build transformations that are fitted only on training data by the pipeline."""\n    numeric = Pipeline(\n        steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]\n    )\n    categorical = Pipeline(\n        steps=[\n            ("imputer", SimpleImputer(strategy="most_frequent")),\n            ("onehot", OneHotEncoder(handle_unknown="ignore")),\n        ]\n    )\n    return ColumnTransformer(\n        transformers=[\n            ("numeric", numeric, NUMERIC_FEATURES),\n            ("categorical", categorical, CATEGORICAL_FEATURES),\n        ],\n        remainder="drop",\n    )\n\n\ndef split_features_target(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:\n    """Separate features and target without fitting any transformation."""\n    missing = set(COLUMNS) - set(frame.columns)\n    if missing:\n        raise ValueError(f"Dataset is missing required columns: {sorted(missing)}")\n    return frame[FEATURES].copy(), frame[TARGET].astype("int8").copy()\n
+"""Data loading and leakage-safe preprocessing for the UCI Adult dataset."""
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Final
+
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+TARGET: Final[str] = "income"
+NUMERIC_FEATURES: Final[list[str]] = [
+    "age", "fnlwgt", "education-num", "capital-gain", "capital-loss", "hours-per-week"
+]
+CATEGORICAL_FEATURES: Final[list[str]] = [
+    "workclass", "education", "marital-status", "occupation", "relationship",
+    "race", "sex", "native-country"
+]
+FEATURES: Final[list[str]] = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+COLUMNS: Final[list[str]] = FEATURES + [TARGET]
+
+
+def load_adult_csv(path: str | Path, *, is_test: bool = False) -> pd.DataFrame:
+    """Load an official UCI Adult data file and normalize its target labels."""
+    frame = pd.read_csv(
+        path,
+        header=None,
+        names=COLUMNS,
+        na_values=["?", " ?"],
+        skipinitialspace=True,
+        comment="|",
+        skiprows=1 if is_test else 0,
+    )
+    frame = frame.dropna(subset=[TARGET]).copy()
+    labels = frame[TARGET].astype(str).str.strip().str.removesuffix(".")
+    mapping = {"<=50K": 0, ">50K": 1}
+    unknown = sorted(set(labels) - set(mapping))
+    if unknown:
+        raise ValueError(f"Unexpected income labels: {unknown}")
+    frame[TARGET] = labels.map(mapping).astype("int8")
+    return frame
+
+
+def build_preprocessor() -> ColumnTransformer:
+    """Fit transformations only on training rows when used inside a Pipeline."""
+    numeric = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+    categorical = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
+    return ColumnTransformer(
+        transformers=[
+            ("numeric", numeric, NUMERIC_FEATURES),
+            ("categorical", categorical, CATEGORICAL_FEATURES),
+        ],
+        remainder="drop",
+    )
+
+
+def split_features_target(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    """Separate features and target without fitting any transformation."""
+    missing = set(COLUMNS) - set(frame.columns)
+    if missing:
+        raise ValueError(f"Dataset is missing required columns: {sorted(missing)}")
+    return frame[FEATURES].copy(), frame[TARGET].astype("int8").copy()
