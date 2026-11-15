@@ -64,21 +64,21 @@ def _predict_one(payload: AdultFeatures) -> dict[str, Any]:
     frame = pd.DataFrame([payload.model_dump(by_alias=True)])
     probability = float(model.predict_proba(frame)[0, 1])
     prediction = ">50K" if probability >= 0.5 else "<=50K"
-    margin = abs(probability - 0.5)
-    confidence = "high" if margin >= 0.3 else "medium" if margin >= 0.15 else "low"
-    return {
-        "prediction": prediction,
-        "probability": probability,
-        "confidence": confidence,
-    }
+    return {"prediction": prediction, "probability": probability}
 
 
 @app.get("/health")
-def health() -> dict[str, str | bool]:
-    return {
-        "status": "healthy" if model is not None else "degraded",
-        "model_loaded": model is not None,
-    }
+def health() -> dict[str, str]:
+    """Liveness endpoint: confirms that the API process is responding."""
+    return {"status": "alive"}
+
+
+@app.get("/ready")
+def ready() -> dict[str, bool | str]:
+    """Readiness endpoint: only succeeds when a model is loaded."""
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model is not available")
+    return {"status": "ready", "model_loaded": True}
 
 
 @app.get("/model-info")
