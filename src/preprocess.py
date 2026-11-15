@@ -11,15 +11,47 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 TARGET: Final[str] = "income"
+
+# The official UCI files use this exact physical column order. Keep it separate
+# from the feature groups used by ColumnTransformer; otherwise values such as
+# "Private" (workclass) can be assigned to a numeric column.
+COLUMNS: Final[list[str]] = [
+    "age",
+    "workclass",
+    "fnlwgt",
+    "education",
+    "education-num",
+    "marital-status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "capital-gain",
+    "capital-loss",
+    "hours-per-week",
+    "native-country",
+    TARGET,
+]
+
 NUMERIC_FEATURES: Final[list[str]] = [
-    "age", "fnlwgt", "education-num", "capital-gain", "capital-loss", "hours-per-week"
+    "age",
+    "fnlwgt",
+    "education-num",
+    "capital-gain",
+    "capital-loss",
+    "hours-per-week",
 ]
 CATEGORICAL_FEATURES: Final[list[str]] = [
-    "workclass", "education", "marital-status", "occupation", "relationship",
-    "race", "sex", "native-country"
+    "workclass",
+    "education",
+    "marital-status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "native-country",
 ]
 FEATURES: Final[list[str]] = NUMERIC_FEATURES + CATEGORICAL_FEATURES
-COLUMNS: Final[list[str]] = FEATURES + [TARGET]
 
 
 def load_adult_csv(path: str | Path, *, is_test: bool = False) -> pd.DataFrame:
