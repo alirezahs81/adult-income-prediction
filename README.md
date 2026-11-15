@@ -65,14 +65,15 @@ Start the service after training:
 uvicorn src.api:app --host 127.0.0.1 --port 8000
 ~~~
 
-- GET /health
+- GET /health — liveness check (API process responds).
+- GET /ready — readiness check (HTTP 200 only when the model is loaded; otherwise HTTP 503).
 - GET /model-info
 - GET /example
 - POST /predict
 - POST /predict/batch (1–100 instances)
 - GET /docs (interactive OpenAPI documentation)
 
-The API returns a predicted class and model probability. Probability is not a guarantee or a calibrated personal assessment.
+The API returns a predicted class and model probability. Probability is not a guarantee or a calibrated personal assessment. The response does not label probability as model confidence.
 
 ## Docker
 
@@ -82,7 +83,7 @@ Train the model locally first, then:
 docker compose up --build
 ~~~
 
-The model directory is mounted read-only at runtime. If the artifact is absent, the API starts in a degraded state and prediction endpoints return HTTP 503; the image build itself remains reproducible and does not rely on untracked data/model folders.
+The model directory is mounted read-only at runtime. The container healthcheck uses /ready, so the container is not marked healthy until a model is loaded. If the artifact is absent, the API process remains live but readiness and prediction endpoints return HTTP 503; the image build itself remains reproducible and does not rely on untracked data/model folders.
 
 ## Data
 
