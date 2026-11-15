@@ -23,7 +23,9 @@ EXAMPLE = {
 
 
 class FakeModel:
-    def predict_proba(self, _frame):
+    def predict_proba(
+        self: "FakeModel", _frame: object
+    ) -> list[list[float]]:
         return [[0.2, 0.8]]
 
 
