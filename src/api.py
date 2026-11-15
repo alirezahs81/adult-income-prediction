@@ -5,9 +5,9 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
 import joblib
 import pandas as pd
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 MODEL_PATH = Path(os.getenv("MODEL_PATH", "models/adult_income_pipeline.joblib"))
