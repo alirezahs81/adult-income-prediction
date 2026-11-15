@@ -3,7 +3,15 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.preprocess import FEATURES, TARGET, build_preprocessor, load_adult_csv, split_features_target
+from src.preprocess import (
+    CATEGORICAL_FEATURES,
+    FEATURES,
+    NUMERIC_FEATURES,
+    TARGET,
+    build_preprocessor,
+    load_adult_csv,
+    split_features_target,
+)
 
 
 def test_load_adult_test_strips_period(tmp_path: Path) -> None:
@@ -32,9 +40,13 @@ def test_missing_column_is_rejected() -> None:
 
 
 def test_preprocessor_ignores_unseen_categories() -> None:
-    training = pd.DataFrame([{**{name: 1 for name in FEATURES}}])
+    row = {
+        **{name: 1 for name in NUMERIC_FEATURES},
+        **{name: "category-a" for name in CATEGORICAL_FEATURES},
+    }
+    training = pd.DataFrame([row])
     validation = training.copy()
-    validation["workclass"] = "previously-unseen"
+    validation.loc[0, "workclass"] = "previously-unseen"
     preprocessor = build_preprocessor()
     preprocessor.fit(training)
     transformed = preprocessor.transform(validation)
