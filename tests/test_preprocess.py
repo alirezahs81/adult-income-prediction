@@ -60,7 +60,7 @@ def test_loader_preserves_official_uci_column_order(tmp_path: Path) -> None:
         "40", "United-States", "<=50K",
     ]
     path = tmp_path / "adult.data"
-    path.write_text(", ".join(row) + "\\n", encoding="utf-8")
+    path.write_text(", ".join(row) + "\n", encoding="utf-8")
 
     frame = load_adult_csv(path)
 
