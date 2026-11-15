@@ -1,240 +1,103 @@
 # Adult Income Prediction
 
-[![CI/CD](https://github.com/alirezahs81/adult-income-prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/alirezahs81/adult-income-prediction/actions/workflows/ci.yml)
-[![Docker Image](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/alirezahs81/adult-income-prediction/pkgs/container/adult-income-prediction)
-[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code Style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+A reproducible machine-learning project that estimates whether an adult's annual income is above $50K using the UCI Adult Census dataset.
 
-This project predicts whether an individual's annual income exceeds $50K based on the UCI Adult Census dataset.
+> **Responsible-use note:** This dataset contains sensitive demographic attributes and historical societal biases. Predictions are educational/research outputs, not facts about a person's worth, ability, or future income. Do not use this model for hiring, lending, insurance, eligibility, or other consequential decisions.
 
-## Model Results
+## Current implementation
 
-| Model | Validation AUC | Test AUC | Test Accuracy |
-|-------|----------------|----------|---------------|
-| **GradientBoosting** (Best) | **0.9279** | **0.9256** | **0.8714** |
-| RandomForest | 0.9196 | 0.9134 | 0.8130 |
-| LogisticRegression | 0.8934 | 0.8863 | 0.7938 |
+- Leakage-aware scikit-learn Pipeline: imputers, scaling, and one-hot encoding are fitted only on the training split.
+- Logistic Regression baseline with class balancing and a fixed random seed.
+- Separate validation and untouched official UCI test evaluation.
+- FastAPI single and batch prediction endpoints.
+- Unit tests and GitHub Actions CI.
+- Docker image that does not require datasets or model artifacts to be committed.
 
-> **Best Model:** GradientBoosting Classifier with AUC 0.9256 on test data.
+No benchmark score is hard-coded as a project result. Run training to generate models/metrics.json; reported metrics depend on the dataset and installed library versions.
 
-## Project Structure
+## Project structure
 
-```
+~~~text
 adult-income-prediction/
-├── .github/workflows/     # GitHub Actions CI/CD
-├── src/                   # Main source code
-│   ├── preprocess.py      # Data preprocessing pipeline
-│   ├── train.py           # Model training and comparison
-│   └── api.py             # FastAPI REST API
-├── data/                  # Data files
-│   ├── adult.csv          # Raw combined data (48,842 samples)
-│   └── processed/         # Processed train/val/test splits
-├── models/                # Trained model artifacts
-│   ├── best_model.pkl     # Best model (GradientBoosting)
-│   ├── preprocessor.pkl   # Fitted preprocessor
-│   ├── label_encoder.pkl  # Label encoder
-│   └── model_comparison.csv # Model comparison metrics
-├── notebooks/             # Jupyter notebooks for EDA
-├── tests/                 # Unit and integration tests
-├── scripts/               # Utility scripts
-├── Dockerfile             # Docker image definition
-├── docker-compose.yml     # Docker Compose configuration
-├── test_api.py            # API test suite
-├── requirements.txt       # Production dependencies
-├── requirements-dev.txt   # Development dependencies
-├── pyproject.toml         # Project metadata and tool config
-├── Makefile               # Automation commands
-├── .env.example           # Environment variable template
-└── README.md              # This file
-```
+├── .github/workflows/ci.yml
+├── scripts/download_data.py
+├── src/
+│   ├── api.py
+│   ├── preprocess.py
+│   └── train.py
+├── tests/
+│   ├── test_api.py
+│   └── test_preprocess.py
+├── requirements.txt
+├── requirements-dev.txt
+├── Dockerfile
+└── pyproject.toml
+~~~
 
-## Quick Start
+## Setup (Python 3.11+)
 
-### Prerequisites
-- Python 3.11+
-- Docker (optional, for containerized deployment)
-
-### 1. Local Installation
-```bash
-# Clone repository
-git clone https://github.com/alirezahs81/adult-income-prediction.git
-cd adult-income-prediction
-
-# Create virtual environment
+~~~bash
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
-
-# Install dependencies
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-
-# Download data (if not present)
+pip install -r requirements-dev.txt
 python scripts/download_data.py
+python -m src.train
+pytest
+ruff check src scripts tests
+~~~
 
-# Preprocess data
-python src/preprocess.py
+The downloader saves the canonical UCI files to data/raw/adult.data and data/raw/adult.test. Dataset files are intentionally not committed.
 
-# Train models
-python src/train.py
+Training writes:
+- models/adult_income_pipeline.joblib
+- models/metrics.json
 
-# Run API
-python src/api.py
-# Or: uvicorn src.api:app --host 0.0.0.0 --port 8000
-```
+The official test set is only used for final evaluation. It is not used to fit preprocessing, train the classifier, or select model settings.
 
-### 2. Docker Deployment
-```bash
-# Build and run with docker-compose
-docker-compose up --build
+## API
 
-# Or build and run manually
-docker build -t adult-income-api .
-docker run -p 8000:8000 adult-income-api
-```
+Start the service after training:
 
-API will be available at `http://localhost:8000`.
+~~~bash
+uvicorn src.api:app --host 127.0.0.1 --port 8000
+~~~
 
-## API Documentation
+- GET /health
+- GET /model-info
+- GET /example
+- POST /predict
+- POST /predict/batch (1–100 instances)
+- GET /docs (interactive OpenAPI documentation)
 
-### Swagger UI
-Interactive documentation at: `http://localhost:8000/docs`
+The API returns a predicted class and model probability. Probability is not a guarantee or a calibrated personal assessment.
 
-### Endpoints
+## Docker
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | API information |
-| GET | `/health` | Health check |
-| GET | `/model-info` | Model metadata |
-| GET | `/example` | Example input payload |
-| POST | `/predict` | Single prediction |
-| POST | `/predict/batch` | Batch prediction (max 1000) |
+Train the model locally first, then:
 
-### Example Request
-```bash
-curl -X POST "http://localhost:8000/predict" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "age": 39,
-    "workclass": "State-gov",
-    "fnlwgt": 77516,
-    "education": "Bachelors",
-    "education-num": 13,
-    "marital-status": "Never-married",
-    "occupation": "Adm-clerical",
-    "relationship": "Not-in-family",
-    "race": "White",
-    "sex": "Male",
-    "capital-gain": 2174,
-    "capital-loss": 0,
-    "hours-per-week": 40,
-    "native-country": "United-States"
-  }'
-```
+~~~bash
+docker compose up --build
+~~~
 
-### Example Response
-```json
-{
-  "prediction": "<=50K",
-  "probability": 0.1234,
-  "confidence": "high"
-}
-```
-
-## Available Commands (Makefile)
-
-```bash
-make install          # Install production dependencies
-make install-dev      # Install development dependencies
-make setup            # Full setup: install + download + preprocess + train
-make download-data    # Download dataset from UCI
-make preprocess       # Run data preprocessing
-make train            # Train all models
-make test             # Run unit tests with coverage
-make test-api         # Run API tests (requires running server)
-make lint             # Run ruff linter
-make format           # Format code with ruff
-make type-check       # Run mypy type checking
-make api              # Run FastAPI server locally
-make docker-build     # Build Docker image
-make docker-run       # Run with docker-compose
-make clean            # Remove cache and build artifacts
-```
-
-## Testing
-
-```bash
-# Unit tests
-pytest tests/ -v
-
-# API tests (server must be running)
-python test_api.py
-
-# Docker test suite
-docker-compose up --build --abort-on-container-exit test
-```
+The model directory is mounted read-only at runtime. If the artifact is absent, the API starts in a degraded state and prediction endpoints return HTTP 503; the image build itself remains reproducible and does not rely on untracked data/model folders.
 
 ## Data
 
-Dataset sourced from [UCI Adult Dataset](https://archive.ics.uci.edu/ml/datasets/adult):
-- 48,842 samples (32,561 train + 16,281 test)
-- 14 features (6 numerical + 8 categorical)
-- Binary target: >50K or <=50K
+Source: [UCI Adult dataset](https://archive.ics.uci.edu/dataset/2/adult)
 
-### Features
-| Type | Features |
-|------|----------|
-| Numerical | age, fnlwgt, education-num, capital-gain, capital-loss, hours-per-week |
-| Categorical | workclass, education, marital-status, occupation, relationship, race, sex, native-country |
+The task is binary classification: <=50K versus >50K. The dataset includes six numeric and eight categorical input features. The UCI test labels contain a trailing period, which the loader normalizes.
 
-## CI/CD Pipeline
+## Limitations and fairness
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
-1. **Lint & Test** - Ruff linting, MyPy type checking, Pytest with coverage
-2. **Build Docker** - Multi-stage build, push to GHCR with semantic tags
-3. **Deploy Staging** - Automatic deployment from develop branch
-4. **Deploy Production** - Deployment on GitHub Release publication
+The data reflects historical census patterns and includes protected or sensitive attributes such as sex and race. The baseline is not fairness-certified, probabilities are not calibrated, and the model may reproduce or amplify dataset biases. Review subgroup performance and legal/ethical requirements before any research deployment; do not use it for individual decisions.
 
-## Configuration
+## CI
 
-Environment variables (see `.env.example`):
-- `MODEL_PATH`, `PREPROCESSOR_PATH`, `LABEL_ENCODER_PATH` - Model artifact paths
-- `HOST`, `PORT` - Server binding
-- `LOG_LEVEL` - Logging verbosity
-- `ENVIRONMENT` - development/staging/production
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit changes (`git commit -m "feat: add new feature"`)
-4. Push to branch (`git push origin feature/new-feature`)
-5. Open a Pull Request
-
-## Changelog
-
-### v1.0.0 (2026-11-02)
-- Complete data preprocessing pipeline
-- Model training and comparison (LogisticRegression, RandomForest, GradientBoosting)
-- Hyperparameter optimization ready (Optuna integration)
-- FastAPI REST API with validation and batch prediction
-- Docker and Docker Compose support
-- GitHub Actions CI/CD pipeline
-- Unit and integration test suite
-- Exploratory data analysis notebook
-- Automated data download script
-- Comprehensive documentation
+GitHub Actions runs Ruff and pytest on pushes to the repair branch and pull requests targeting main. CI tests do not download the dataset or require a trained model.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-- [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/adult) for the dataset
-- [scikit-learn](https://scikit-learn.org/) for machine learning algorithms
-- [FastAPI](https://fastapi.tiangolo.com/) for the API framework
-- [Optuna](https://optuna.org/) for hyperparameter optimization
+MIT. See LICENSE. Dataset terms and attribution are governed by UCI.
