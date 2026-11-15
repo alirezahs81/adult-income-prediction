@@ -64,9 +64,11 @@ include = ["*"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = [".git", "__pycache__", ".pytest_cache", "data", "models", "notebooks", ".venv", "venv"]
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "B", "C4", "ANN", "T20"]
 ignore = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN204", "ANN401", "T201", "T203"]
-exclude = [".git", "__pycache__", ".pytest_cache", "data", "models", "notebooks", ".venv", "venv"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -94,7 +96,6 @@ markers = [
 
 [tool.coverage.run]
 source = ["src"]
-omit = ["src/api.py", "*/test_*.py"]
 
 [tool.coverage.report]
 exclude_lines = [
