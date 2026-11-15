@@ -1,3 +1,4 @@
+import numpy as np
 from fastapi.testclient import TestClient
 
 from src import api
@@ -25,8 +26,8 @@ EXAMPLE = {
 class FakeModel:
     def predict_proba(
         self: "FakeModel", _frame: object
-    ) -> list[list[float]]:
-        return [[0.2, 0.8]]
+    ) -> np.ndarray:
+        return np.array([[0.2, 0.8]])
 
 
 def test_health_is_liveness_even_without_model(monkeypatch) -> None:
@@ -77,3 +78,4 @@ def test_example_endpoint() -> None:
 def test_batch_limit_is_validated() -> None:
     response = client.post("/predict/batch", json={"instances": []})
     assert response.status_code == 422
+}
