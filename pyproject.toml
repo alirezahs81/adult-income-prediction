@@ -8,9 +8,7 @@ version = "1.0.0"
 description = "Adult Income Prediction with FastAPI, Docker, CI/CD - ML Project"
 readme = "README.md"
 license = {text = "MIT"}
-authors = [
-    {name = "Alireza", email = "alirezahs81@example.com"}
-]
+authors = [{name = "Alireza"}]
 keywords = ["machine-learning", "income-prediction", "fastapi", "mlops", "docker"]
 classifiers = [
     "Development Status :: 4 - Beta",
