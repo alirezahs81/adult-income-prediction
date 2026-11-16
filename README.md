@@ -16,7 +16,7 @@ A reproducible end-to-end machine-learning project that predicts whether an adul
 
 ## Latest official test results
 
-The following results were produced by the real-data GitHub Actions evaluation on the official UCI test split, using the default decision threshold of **0.50**.
+The following results were produced by the successful real-data GitHub Actions evaluation on the official UCI test split, using the default decision threshold of **0.50**.
 
 | Metric | Official test result |
 |---|---:|
@@ -36,17 +36,19 @@ The following results were produced by the real-data GitHub Actions evaluation o
 
 The official test set is used only for final evaluation; it is not used to fit preprocessing, train the classifier, or select model settings. Metrics are a reproducible baseline snapshot, not a guarantee of performance on other populations or future data.
 
-- [Real-data training and evaluation workflow](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43906059980)
-- [CI workflow: tests, package build, Docker and API smoke test](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43906060010)
+- [Latest real-data training and evaluation workflow](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43910000422)
+- [Latest CI workflow: tests, package build, Docker and API smoke test](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43910000378)
 - [Detailed evaluation report](reports/model_evaluation.md)
 
 ## Project structure
 
 ~~~text
 adult-income-prediction/
-├── .github/workflows/
-│   ├── ci.yml
-│   └── model-evaluation.yml
+├── .env.example
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── model-evaluation.yml
 ├── scripts/
 │   ├── analyze_fairness.py
 │   └── download_data.py
@@ -60,15 +62,20 @@ adult-income-prediction/
 │   ├── test_fairness.py
 │   ├── test_preprocess.py
 │   └── test_train.py
+├── reports/
+│   └── model_evaluation.md
+├── .gitignore
 ├── Dockerfile
 ├── docker-compose.yml
+├── LICENSE
 ├── Makefile
 ├── pyproject.toml
-├── requirements.txt
+├── README.md
 ├── requirements-dev.txt
-├── LICENSE
-└── README.md
+└── requirements.txt
 ~~~
+
+Generated datasets, trained model artifacts, and runtime outputs are created locally and are not committed as part of the source tree.
 
 ## Getting started
 
