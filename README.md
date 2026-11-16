@@ -113,3 +113,21 @@ GitHub Actions runs Ruff and pytest on pushes to the repair branch and pull requ
 ## License
 
 MIT. See LICENSE. Dataset terms and attribution are governed by UCI.
+
+
+## Fairness and decision-threshold analysis
+
+Run a validation-only subgroup and threshold analysis after downloading the official dataset:
+
+~~~bash
+python scripts/analyze_fairness.py --data-dir data/raw --output-dir reports/fairness
+~~~
+
+The report writes:
+- `reports/fairness/subgroup_metrics.csv`: accuracy, precision, recall, F1, positive prediction rate, true-positive rate, and false-positive rate for sufficiently large sex, race, and sex-by-race groups.
+- `reports/fairness/threshold_metrics.csv`: validation metrics across candidate decision thresholds from 0.20 to 0.80.
+- `reports/fairness/summary.json`: split sizes and the threshold with the highest validation F1.
+
+The analysis creates its own stratified train/validation split and fits preprocessing and the classifier on the training partition only. The validation partition is used for subgroup reporting and threshold comparison; the official UCI test set is not used to select a threshold. Small groups below the configurable minimum size are omitted to avoid unstable estimates.
+
+These metrics are descriptive diagnostics, not proof of fairness or legal compliance. Group differences can reflect dataset composition, measurement limitations, and historical inequities. No threshold is automatically deployed. Threshold choice requires an explicitly justified use case and must not be used to make hiring, lending, insurance, eligibility, or other consequential individual decisions.
