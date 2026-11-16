@@ -25,12 +25,11 @@ def test_subgroup_metrics_reports_sex_race_and_intersections() -> None:
     y_true = pd.Series([0, 1, 1, 0])
     probabilities = np.array([0.2, 0.8, 0.7, 0.3])
 
-    result = subgroup_metrics(
-        frame, y_true, probabilities, min_group_size=1
-    )
+    result = subgroup_metrics(frame, y_true, probabilities, min_group_size=1)
 
     assert set(result["attribute"]) == {"sex", "race", "sex_race"}
-    assert (result["count"] == 2).all()
+    assert (result.loc[result["attribute"].isin(["sex", "race"]), "count"] == 2).all()
+    assert (result.loc[result["attribute"] == "sex_race", "count"] == 1).all()
     assert {"true_positive_rate", "false_positive_rate"} <= set(result.columns)
 
 
@@ -39,7 +38,10 @@ def test_subgroup_metrics_excludes_small_groups() -> None:
     result = subgroup_metrics(
         frame, pd.Series([0, 1]), np.array([0.2, 0.8]), min_group_size=2
     )
-    assert result.empty
+
+    assert set(result["attribute"]) == {"race"}
+    assert result["group"].tolist() == ["White"]
+    assert result["count"].tolist() == [2]
 
 
 def test_invalid_threshold_is_rejected() -> None:
