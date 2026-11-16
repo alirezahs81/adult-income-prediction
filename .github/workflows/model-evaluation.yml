@@ -3,6 +3,7 @@ name: Real Dataset Model Evaluation
 on:
   push:
     branches:
+      - main
       - "fix/**"
   pull_request:
     branches:
