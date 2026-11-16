@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - "fix/**"
+      - "feat/**"
   pull_request:
     branches:
       - main
@@ -45,6 +46,9 @@ jobs:
       - name: Train and evaluate without test leakage
         run: python -m src.train
 
+      - name: Run validation-only fairness and threshold analysis
+        run: python scripts/analyze_fairness.py --data-dir data/raw --output-dir reports/fairness
+
       - name: Validate metrics report
         run: |
           python - <<'PY'
@@ -70,4 +74,5 @@ jobs:
           path: |
             models/metrics.json
             models/adult_income_pipeline.joblib
+            reports/fairness/
           retention-days: 14
