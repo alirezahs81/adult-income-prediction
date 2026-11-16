@@ -108,7 +108,7 @@ The data reflects historical census patterns and includes protected or sensitive
 
 ## CI
 
-GitHub Actions runs Ruff and pytest on pushes to the repair branch and pull requests targeting main. CI tests do not download the dataset or require a trained model. A separate workflow downloads the official UCI data, trains the baseline, and evaluates the untouched official test split.
+GitHub Actions runs Ruff, pytest, a package-install/import check, and a Docker build plus live API smoke test on pushes to `main`, `fix/**`, and `feat/**`, and on pull requests targeting `main`. The Docker smoke test creates a small deterministic test model, starts the container, verifies `/health` and `/ready`, and sends a real request to `/predict`. CI does not download the full dataset. A separate workflow downloads the official UCI data, trains the baseline, and evaluates the untouched official test split.
 
 ## License
 
