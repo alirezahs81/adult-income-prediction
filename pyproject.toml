@@ -57,9 +57,12 @@ Homepage = "https://github.com/alirezahs81/adult-income-prediction"
 Repository = "https://github.com/alirezahs81/adult-income-prediction"
 Issues = "https://github.com/alirezahs81/adult-income-prediction/issues"
 
+# The repository intentionally imports its application as src.*.
+# Discover the src package from the repository root so wheel installs include it.
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["*"]
+where = ["."]
+include = ["src*"]
+exclude = ["tests*", "scripts*"]
 
 [tool.ruff]
 line-length = 100
