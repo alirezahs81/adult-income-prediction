@@ -4,14 +4,16 @@
 
 - Repository: [alirezahs81/adult-income-prediction](https://github.com/alirezahs81/adult-income-prediction)
 - Branch: `main`
-- Evaluated commit: `545a6f8ca6cbe4be7ff3f9145bc168aaa75c91e4`
-- Workflow run: [Real Dataset Model Evaluation #43906059980](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43906059980)
+- Evaluated commit: `fc8bcb1cf03161d6665b94f2766bcb4528734f30`
+- Evaluation date: 2026-11-16
+- Workflow run: [Real Dataset Model Evaluation #43910000422](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43910000422)
+- Companion CI run: [CI #43910000378](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43910000378)
 - Dataset: [UCI Adult](https://archive.ics.uci.edu/dataset/2/adult)
 - Model: class-balanced Logistic Regression baseline
 - Decision threshold: `0.50`
 - Random state: `42`
 
-This report records the metrics emitted by the linked successful GitHub Actions run. It is a snapshot for reproducibility and portfolio documentation; rerunning training or changing dependencies/code may produce different results.
+This report records the metrics emitted by the successful GitHub Actions evaluation run for the commit above. It is a snapshot for reproducibility and portfolio documentation; rerunning training or changing dependencies/code may produce different results.
 
 ## Data split
 
@@ -47,7 +49,7 @@ The relatively high recall alongside lower precision indicates that, at the 0.50
 
 ## Automated verification
 
-The same evaluation workflow completed successfully, including:
+The linked evaluation workflow completed successfully on the evaluated commit, including:
 
 - Download and verification of the official UCI data files.
 - Training and evaluation without test leakage.
@@ -55,7 +57,7 @@ The same evaluation workflow completed successfully, including:
 - Validation of the generated metrics report.
 - Upload of the trained pipeline and evaluation report as a workflow artifact.
 
-The companion [CI run #43906060010](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43906060010) also completed successfully: 18 tests passed, reported statement coverage was 90%, Ruff passed, package build/install succeeded, and the Docker build plus live API smoke test passed.
+The companion [CI run #43910000378](https://github.com/alirezahs81/adult-income-prediction/actions/runs/43910000378) also completed successfully on the same commit: 18 tests passed, reported statement coverage was 90%, Ruff passed, package build/install succeeded, and the Docker build plus live API smoke test passed.
 
 ## Fairness and responsible-use caveats
 
