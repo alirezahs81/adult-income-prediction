@@ -47,7 +47,7 @@ jobs:
         run: python -m src.train
 
       - name: Run validation-only fairness and threshold analysis
-        run: python scripts/analyze_fairness.py --data-dir data/raw --output-dir reports/fairness
+        run: python -m scripts.analyze_fairness --data-dir data/raw --output-dir reports/fairness
 
       - name: Validate metrics report
         run: |
