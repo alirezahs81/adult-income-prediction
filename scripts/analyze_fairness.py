@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -18,9 +17,6 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-
-# Make the repository root importable when this file is run as a script.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.preprocess import FEATURES, build_preprocessor, load_adult_csv
 
